@@ -23,7 +23,7 @@ class ChatService {
     private var nextMessageId = 0
 
 
-    private fun createChat( id: Int, user1: User, user2: User): Chat {
+    private fun createChat(id: Int, user1: User, user2: User): Chat {
         val chat = Chat(id, user1, user2, mutableListOf())
         chats[id] = chat
         return chat
@@ -39,21 +39,22 @@ class ChatService {
 
     fun getMessages(chatId: Int, recipientId: Int, count: Int): List<Message> {
         val chat = chats[chatId] ?: return emptyList()
-        chat.messages.filter { !it.isRead && (it.recipient.id == recipientId) }.forEach { it.isRead = true }
-        chat.unreadCount = chat.messages.count { !it.isRead && (it.recipient.id == recipientId) }
+        chat.messages
+            .asSequence()
+            .filter { !it.isRead && it.recipient.id == recipientId }
+            .onEach { it.isRead = true }
+            .toList()
+        chat.unreadCount = chat.messages.count { !it.isRead && it.recipient.id == recipientId }
         return chat.messages.takeLast(count)
     }
 
     fun getLastMessages(userId: Int): List<String> {
-        val lastMessages = mutableListOf<String>()
-        for (chat in getChats(userId)) {
-            if (chat.messages.isNotEmpty()) {
-                lastMessages.add(chat.messages.last().content)
-            } else {
-                lastMessages.add("нет сообщений")
+        return getChats(userId)
+            .asSequence()
+            .mapNotNull { chat ->
+                chat.messages.lastOrNull()?.content ?: "нет сообщений"
             }
-        }
-        return lastMessages
+            .toList()
     }
 
     fun sendMessage(chatId: Int, sender: User, recipient: User, messageContent: String): Chat {
@@ -70,24 +71,22 @@ class ChatService {
     }
 
     fun editMessage(messageId: Int, newContent: String): Boolean {
-        val chat = chats.values.find { it.messages.any { message -> message.id == messageId } }
-        if (chat != null) {
-            val message = chat.messages.find { it.id == messageId }
-            if (message != null) {
-                message.content = newContent
-                return true
+        return chats.values.any { chat ->
+            chat.messages.any { message ->
+                if (message.id == messageId) {
+                    message.content = newContent
+                    true
+                } else {
+                    false
+                }
             }
         }
-        return false
     }
 
     fun deleteMessage(messageId: Int): Boolean {
-        val chat = chats.values.find { it.messages.any { message -> message.id == messageId } }
-        if (chat != null) {
+        return chats.values.any { chat ->
             chat.messages.removeAll { it.id == messageId }
-            return true
         }
-        return false
     }
 
     fun deleteChat(chatId: Int): Boolean {
