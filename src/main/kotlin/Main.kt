@@ -21,13 +21,11 @@ data class Chat(
 class ChatService {
     val chats: MutableMap<Int, Chat> = mutableMapOf()
     private var nextMessageId = 0
-    private var nextChatId = 0
 
-    fun createChat(user1: User, user2: User, text: String): Chat {
-        val chatId = ++nextChatId
-        val chat = Chat(chatId, user1, user2, mutableListOf())
-        chats[chatId] = chat
-        sendMessage(chatId, user1, user2, text)
+
+    private fun createChat( id: Int, user1: User, user2: User): Chat {
+        val chat = Chat(id, user1, user2, mutableListOf())
+        chats[id] = chat
         return chat
     }
 
@@ -58,8 +56,8 @@ class ChatService {
         return lastMessages
     }
 
-    fun sendMessage(chatId: Int, sender: User, recipient: User, messageContent: String): Message {
-        val chat = chats[chatId] ?: throw IllegalArgumentException("чат не найден")
+    fun sendMessage(chatId: Int, sender: User, recipient: User, messageContent: String): Chat {
+        val chat = chats[chatId] ?: createChat(chatId, sender, recipient)
         val message = Message(
             ++nextMessageId,
             sender,
@@ -68,7 +66,7 @@ class ChatService {
         )
         chat.messages.add(message)
         chat.unreadCount++
-        return message
+        return chat
     }
 
     fun editMessage(messageId: Int, newContent: String): Boolean {

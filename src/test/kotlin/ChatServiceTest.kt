@@ -10,7 +10,7 @@ class ChatServiceTest {
         val countChats = chatService.chats.size
         val user1 = User(1)
         val user2 = User(2)
-        chatService.createChat(user1, user2, "hello")
+        chatService.sendMessage(1, user1, user2, "hello")
         assertEquals(countChats + 1, chatService.chats.size)
 
 
@@ -22,9 +22,9 @@ class ChatServiceTest {
         val user1 = User(1)
         val user2 = User(2)
         val user3 = User(3)
-        chatService.createChat(user1, user2, "hello")
-        chatService.createChat(user2, user3, "hello")
-        chatService.createChat(user1, user3, "hello")
+        chatService.sendMessage(1, user1, user2, "hello")
+        chatService.sendMessage(2, user2, user3, "hello")
+        chatService.sendMessage(1, user1, user3, "hello")
         val chats = chatService.getChats(2)
         assertEquals(2, chats.size)
     }
@@ -34,16 +34,13 @@ class ChatServiceTest {
         val chatService = ChatService()
         val user1 = User(1)
         val user2 = User(2)
-        chatService.createChat(user1, user2, "hello")
+        chatService.sendMessage(1, user1, user2, "hello")
         assertEquals(1, chatService.chats[1]?.unreadCount)
     }
 
     @org.junit.Test
     fun getUnreadChatsCountNull() {
         val chatService = ChatService()
-        val user1 = User(1)
-        val user2 = User(2)
-        //chatService.createChat(user1, user2, "hello" )
         assertEquals(null, chatService.chats[1]?.unreadCount)
     }
 
@@ -52,10 +49,10 @@ class ChatServiceTest {
         val chatService = ChatService()
         val user1 = User(1)
         val user2 = User(2)
-        val chat = chatService.createChat(user1, user2, "Message 1")
-        chatService.sendMessage(chat.id, user1, user2, "Message 2")
-        chatService.sendMessage(chat.id, user2, user1, "Message 3")
-        val messages = chatService.getMessages(chat.id, user2.id, 2)
+        chatService.sendMessage(1, user1, user2, "hello")
+        chatService.sendMessage(1, user1, user2, "hello")
+        chatService.sendMessage(2, user2, user1, "hello")
+        val messages = chatService.getMessages(1, user2.id, 2)
         assertEquals(2, messages.size)
     }
 
@@ -64,21 +61,23 @@ class ChatServiceTest {
         val chatService = ChatService()
         val user1 = User(1)
         val user2 = User(2)
-        val chat = chatService.createChat(user1, user2, "Message 1")
-        chatService.sendMessage(chat.id, user1, user2, "Message 2")
-        chatService.sendMessage(chat.id, user2, user1, "Message 3")
-        val messages = chatService.getMessages(chat.id, user2.id, 2)
+        chatService.sendMessage(1, user1, user2, "hello")
+        chatService.sendMessage(1, user1, user2, "hello")
+        chatService.sendMessage(2, user2, user1, "hello")
+        val messages = chatService.getMessages(1, user2.id, 2)
         assertEquals(2, messages.size)
     }
 
     @org.junit.Test
     fun sendMessage() {
+
         val chatService = ChatService()
         val user1 = User(1)
         val user2 = User(2)
-        val chat = chatService.createChat(user1, user2, "Hello")
-        val message = chatService.sendMessage(chat.id, user1, user2, "Hi")
-        assertEquals("Hi", message.content)
+        val countChats = chatService.chats.size
+        chatService.sendMessage(1, user1, user2, "hello")
+        assertEquals(countChats + 1, chatService.chats.size)
+
     }
 
     @org.junit.Test
@@ -86,7 +85,7 @@ class ChatServiceTest {
         val chatService = ChatService()
         val user1 = User(1)
         val user2 = User(2)
-        val chat = chatService.createChat(user1, user2, "Hello")
+        val chat = chatService.sendMessage(1, user1, user2, "hello")
         val message = chatService.sendMessage(chat.id, user1, user2, "Original message")
         assertTrue(chatService.editMessage(message.id, "Edited message"))
     }
@@ -96,7 +95,7 @@ class ChatServiceTest {
         val chatService = ChatService()
         val user1 = User(1)
         val user2 = User(2)
-        val chat = chatService.createChat(user1, user2, "Hello")
+        val chat = chatService.sendMessage(1, user1, user2, "hello")
         val message = chatService.sendMessage(chat.id, user1, user2, "Message to delete")
         assertTrue(chatService.deleteMessage(message.id))
         assertEquals(1, chat.messages.size)
@@ -107,7 +106,7 @@ class ChatServiceTest {
         val chatService = ChatService()
         val user1 = User(1)
         val user2 = User(2)
-        val chat = chatService.createChat(user1, user2, "Hello")
+        val chat = chatService.sendMessage(1, user1, user2, "hello")
         assertTrue(chatService.deleteChat(chat.id))
         assertFalse(chatService.chats.containsKey(chat.id))
     }
